@@ -3,6 +3,7 @@ import notifee, {
   TriggerType,
   TimestampTrigger,
   AuthorizationStatus,
+  RepeatFrequency,
 } from '@notifee/react-native';
 import {koreanQuotes} from '../data/quotes';
 
@@ -49,7 +50,7 @@ export const notificationService = {
       const trigger: TimestampTrigger = {
         type: TriggerType.TIMESTAMP,
         timestamp: scheduledDate.getTime(),
-        repeatFrequency: 'daily' as any, // Repeat daily
+        repeatFrequency: RepeatFrequency.DAILY,
       };
 
       await notifee.createTriggerNotification(
