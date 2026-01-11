@@ -6,10 +6,10 @@ export interface Quote {
 
 export interface AppSettings {
   notificationsEnabled: boolean;
-  intervalHours: number;
+  notificationTimes: string[]; // Array of times in "HH:mm" format (24-hour)
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   notificationsEnabled: false,
-  intervalHours: 4,
+  notificationTimes: ['09:00', '14:00', '20:00'], // Default: 9 AM, 2 PM, 8 PM
 };

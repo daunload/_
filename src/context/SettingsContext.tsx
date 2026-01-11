@@ -13,12 +13,14 @@ import {notificationService} from '../services/notificationService';
 type Action =
   | {type: 'LOAD_SETTINGS'; payload: AppSettings}
   | {type: 'SET_NOTIFICATIONS_ENABLED'; payload: boolean}
-  | {type: 'SET_INTERVAL'; payload: number};
+  | {type: 'SET_NOTIFICATION_TIMES'; payload: string[]};
 
 interface SettingsContextType {
   settings: AppSettings;
   setNotificationsEnabled: (enabled: boolean) => Promise<void>;
-  setInterval: (hours: number) => void;
+  setNotificationTimes: (times: string[]) => void;
+  addNotificationTime: (time: string) => void;
+  removeNotificationTime: (time: string) => void;
   isLoading: boolean;
 }
 
@@ -32,8 +34,8 @@ function settingsReducer(state: AppSettings, action: Action): AppSettings {
       return action.payload;
     case 'SET_NOTIFICATIONS_ENABLED':
       return {...state, notificationsEnabled: action.payload};
-    case 'SET_INTERVAL':
-      return {...state, intervalHours: action.payload};
+    case 'SET_NOTIFICATION_TIMES':
+      return {...state, notificationTimes: action.payload};
     default:
       return state;
   }
@@ -62,8 +64,8 @@ export function SettingsProvider({children}: {children: React.ReactNode}) {
       await storageService.saveSettings(settings);
 
       if (settings.notificationsEnabled) {
-        await notificationService.scheduleRepeatingNotification(
-          settings.intervalHours,
+        await notificationService.scheduleNotificationsAtTimes(
+          settings.notificationTimes,
         );
       } else {
         await notificationService.cancelAllNotifications();
@@ -81,13 +83,34 @@ export function SettingsProvider({children}: {children: React.ReactNode}) {
     dispatch({type: 'SET_NOTIFICATIONS_ENABLED', payload: enabled});
   }, []);
 
-  const setInterval = useCallback((hours: number) => {
-    dispatch({type: 'SET_INTERVAL', payload: hours});
+  const setNotificationTimes = useCallback((times: string[]) => {
+    dispatch({type: 'SET_NOTIFICATION_TIMES', payload: times});
   }, []);
+
+  const addNotificationTime = useCallback((time: string) => {
+    dispatch({
+      type: 'SET_NOTIFICATION_TIMES',
+      payload: [...settings.notificationTimes, time].sort(),
+    });
+  }, [settings.notificationTimes]);
+
+  const removeNotificationTime = useCallback((time: string) => {
+    dispatch({
+      type: 'SET_NOTIFICATION_TIMES',
+      payload: settings.notificationTimes.filter(t => t !== time),
+    });
+  }, [settings.notificationTimes]);
 
   return (
     <SettingsContext.Provider
-      value={{settings, setNotificationsEnabled, setInterval, isLoading}}>
+      value={{
+        settings,
+        setNotificationsEnabled,
+        setNotificationTimes,
+        addNotificationTime,
+        removeNotificationTime,
+        isLoading,
+      }}>
       {children}
     </SettingsContext.Provider>
   );

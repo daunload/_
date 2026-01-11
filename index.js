@@ -12,13 +12,14 @@ import {storageService} from './src/services/storageService';
 notifee.onBackgroundEvent(async ({type, detail}) => {
   console.log('Background notification event:', type, detail);
 
-  // Re-schedule next notification when one is delivered
-  if (type === 1) {
-    // EventType.DELIVERED
+  // Re-schedule all notifications when one is delivered or pressed
+  // This ensures the next day's notifications are scheduled
+  if (type === 1 || type === 2) {
+    // EventType.DELIVERED or EventType.PRESS
     const settings = await storageService.getSettings();
     if (settings.notificationsEnabled) {
-      await notificationService.scheduleRepeatingNotification(
-        settings.intervalHours,
+      await notificationService.scheduleNotificationsAtTimes(
+        settings.notificationTimes,
       );
     }
   }

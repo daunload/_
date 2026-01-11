@@ -11,15 +11,14 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colors} from '../theme/colors';
 import {useSettings} from '../context/SettingsContext';
 import {NotificationToggle} from '../components/NotificationToggle';
-import {IntervalSlider} from '../components/IntervalSlider';
+import {TimePickerList} from '../components/TimePickerList';
 import {QuoteCard} from '../components/QuoteCard';
 
 export function HomeScreen() {
   const isDark = useColorScheme() === 'dark';
   const theme = isDark ? colors.dark : colors.light;
   const insets = useSafeAreaInsets();
-  const {settings, setNotificationsEnabled, setInterval, isLoading} =
-    useSettings();
+  const {settings, setNotificationsEnabled, isLoading} = useSettings();
 
   if (isLoading) {
     return (
@@ -54,11 +53,13 @@ export function HomeScreen() {
           value={settings.notificationsEnabled}
           onValueChange={setNotificationsEnabled}
         />
-        <IntervalSlider
-          value={settings.intervalHours}
-          onValueChange={setInterval}
-          disabled={!settings.notificationsEnabled}
-        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, {color: theme.textSecondary}]}>
+          알림 시간
+        </Text>
+        <TimePickerList />
       </View>
     </ScrollView>
   );

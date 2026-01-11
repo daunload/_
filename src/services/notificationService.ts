@@ -26,32 +26,49 @@ export const notificationService = {
     });
   },
 
-  async scheduleRepeatingNotification(intervalHours: number): Promise<void> {
+  async scheduleNotificationsAtTimes(times: string[]): Promise<void> {
     await this.cancelAllNotifications();
 
-    const quote = this.getRandomQuote();
-    const intervalMs = intervalHours * 60 * 60 * 1000;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const trigger: TimestampTrigger = {
-      type: TriggerType.TIMESTAMP,
-      timestamp: Date.now() + intervalMs,
-    };
+    for (const time of times) {
+      const [hours, minutes] = time.split(':').map(Number);
 
-    await notifee.createTriggerNotification(
-      {
-        title: '오늘의 명언',
-        body: quote.author ? `"${quote.text}" - ${quote.author}` : quote.text,
-        android: {
-          channelId: CHANNEL_ID,
-          smallIcon: 'ic_launcher',
-          pressAction: {id: 'default'},
+      // Calculate next occurrence of this time
+      let scheduledDate = new Date(today);
+      scheduledDate.setHours(hours, minutes, 0, 0);
+
+      // If the time has already passed today, schedule for tomorrow
+      if (scheduledDate.getTime() <= now.getTime()) {
+        scheduledDate.setDate(scheduledDate.getDate() + 1);
+      }
+
+      const quote = this.getRandomQuote();
+
+      const trigger: TimestampTrigger = {
+        type: TriggerType.TIMESTAMP,
+        timestamp: scheduledDate.getTime(),
+        repeatFrequency: 'daily' as any, // Repeat daily
+      };
+
+      await notifee.createTriggerNotification(
+        {
+          id: `notification-${time}`, // Unique ID per time slot
+          title: '오늘의 명언',
+          body: quote.author ? `"${quote.text}" - ${quote.author}` : quote.text,
+          android: {
+            channelId: CHANNEL_ID,
+            smallIcon: 'ic_launcher',
+            pressAction: {id: 'default'},
+          },
+          ios: {
+            sound: 'default',
+          },
         },
-        ios: {
-          sound: 'default',
-        },
-      },
-      trigger,
-    );
+        trigger,
+      );
+    }
   },
 
   async cancelAllNotifications(): Promise<void> {
